@@ -1,0 +1,59 @@
+package types
+
+import (
+	"time"
+)
+
+type User struct {
+	ID        string    `json:"id"`
+	Email     string    `json:"email"`
+	Password  string    `json:"-"`
+	FirstName string    `json:"first_name,omitempty"`
+	LastName  string    `json:"last_name,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitzero"`
+	UpdatedAt time.Time `json:"updated_at,omitzero"`
+}
+
+type Author struct {
+	ID        *string    `json:"id"`
+	Name      *string    `json:"name"`
+	Username  *string    `json:"username"`
+	Email     *string    `json:"email"`
+	Image     *string    `json:"image"`
+	Bio       *string    `json:"bio"`
+	CreatedAt *time.Time `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at"`
+	Deleted   *string    `json:"deleted"`
+}
+
+type Startup struct {
+	ID          *string    `json:"id"`
+	Title       *string    `json:"title"`
+	Slug        *string    `json:"slug"`
+	AuthorId    *string    `json:"author_id"`
+	Views       *int       `json:"views"`
+	Description *string    `json:"description"`
+	Category    *string    `json:"category"`
+	Image       *string    `json:"image"`
+	Pitch       *string    `json:"pitch"`
+	CreatedAt   *time.Time `json:"created_at"`
+	UpdatedAt   *time.Time `json:"updated_at"`
+	Deleted     *string    `json:"deleted"`
+}
+
+type Playlist struct {
+	ID        *string    `json:"id"`
+	Title     *string    `json:"title"`
+	Slug      *string    `json:"slug"`
+	CreatedAt *time.Time `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at"`
+	Deleted   *string    `json:"deleted"`
+}
+
+type StartupPlaylist struct {
+	StartupID  *string    `json:"startup_id"`
+	PlaylistId *string    `json:"playlist_id"`
+	CreatedAt  *time.Time `json:"created_at"`
+	UpdatedAt  *time.Time `json:"updated_at"`
+	Deleted    *string    `json:"deleted"`
+}
