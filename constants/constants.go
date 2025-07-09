@@ -11,6 +11,7 @@ import (
 const ContextData types.ContextKey = "data"
 
 var AuthorFields []string = getJSONFieldNames(&types.Author{})
+var StartupFields []string = getJSONFieldNames(&types.Startup{})
 
 var SECRET []byte = func() []byte {
 	secret := configs.Envs.SECRET
@@ -32,7 +33,7 @@ func getJSONFieldNames(i any) []string {
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		tag := field.Tag.Get("json")
-		if tag != "" && tag != "-" {
+		if field.Type.Kind() != reflect.Struct && tag != "" && tag != "-" {
 			fields = append(fields, tag)
 		}
 	}

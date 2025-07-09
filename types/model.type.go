@@ -15,15 +15,15 @@ type User struct {
 }
 
 type Author struct {
-	ID        *string    `json:"id"`
-	Name      *string    `json:"name"`
-	Username  *string    `json:"username"`
-	Email     *string    `json:"email"`
-	Image     *string    `json:"image"`
-	Bio       *string    `json:"bio"`
-	CreatedAt *time.Time `json:"created_at"`
-	UpdatedAt *time.Time `json:"updated_at"`
-	Deleted   *string    `json:"deleted"`
+	ID        *string    `json:"id,omitempty"`
+	Name      *string    `json:"name,omitempty"`
+	Username  *string    `json:"username,omitempty"`
+	Email     *string    `json:"email,omitempty"`
+	Image     *string    `json:"image,omitempty"`
+	Bio       *string    `json:"bio,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitzero"`
+	UpdatedAt *time.Time `json:"updated_at,omitzero"`
+	Deleted   *string    `json:"deleted,omitempty"`
 }
 
 type Startup struct {
@@ -31,6 +31,7 @@ type Startup struct {
 	Title       *string    `json:"title"`
 	Slug        *string    `json:"slug"`
 	AuthorId    *string    `json:"author_id"`
+	Author      Author     `json:"author"`
 	Views       *int       `json:"views"`
 	Description *string    `json:"description"`
 	Category    *string    `json:"category"`

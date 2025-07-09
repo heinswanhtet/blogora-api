@@ -34,11 +34,12 @@ func (s *APIServer) Run() error {
 
 	routesHandler.RegisterAuthRoutes(subRouter)
 	routesHandler.RegisterAuthorRoutes(subRouter)
+	routesHandler.RegisterStartupRoutes(subRouter)
 
 	subRouter.Attach("GET", "/user/greet", greet, middleware.AuthenticateToken(store))
 	subRouter.Attach("DELETE", "/user/greets", greet)
 
-	router.Use("/api/v1/", subRouter, middleware.Log)
+	router.Use("/api/v1/", subRouter, middleware.Log, middleware.RecoverMiddleware)
 
 	// userRouter := methods.NewCustomMux()
 	// userRouter.Attach("GET", "/user/greet", greet, middleware.AuthenticateToken)

@@ -19,3 +19,12 @@ type AuthorPayload struct {
 	Image    *string `json:"image"`
 	Bio      *string `json:"bio"`
 }
+
+type StartupPayload struct {
+	Title       *string `json:"title" validate:"required"`
+	AuthorId    *string `json:"author_id" validate:"required"`
+	Description *string `json:"description"`
+	Category    *string `json:"category" validate:"required"`
+	Image       *string `json:"image"`
+	Pitch       *string `json:"pitch"`
+}

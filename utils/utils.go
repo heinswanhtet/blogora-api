@@ -5,6 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/base32"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -442,4 +444,33 @@ func GetJWTPayload(ctx context.Context) (*types.ContextData, error) {
 		return nil, fmt.Errorf("jwt payload failed")
 	}
 	return payload, nil
+}
+
+func GenerateUniqueSlug(title string, exists func(slug string) bool) string {
+	base := slugify(title)
+	for {
+		suffix := secureRandomString(6)
+		slug := fmt.Sprintf("%s-%s", base, suffix)
+		if !exists(slug) {
+			return slug
+		}
+	}
+}
+
+func slugify(title string) string {
+	title = strings.ToLower(title)
+	re := regexp.MustCompile(`[^a-z0-9]+`)
+	slug := re.ReplaceAllString(title, "-")
+	return strings.Trim(slug, "-")
+}
+
+// Generate short random alphanumeric string using crypto/rand (stronger than math/rand)
+func secureRandomString(length int) string {
+	b := make([]byte, length)
+	_, err := rand.Read(b)
+	if err != nil {
+		panic(err) // Fail fast in prod
+	}
+	// Use base32 to keep it URL-safe and alphanumeric
+	return strings.ToLower(base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(b))[:length]
 }
