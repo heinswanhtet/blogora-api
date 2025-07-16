@@ -48,9 +48,10 @@ func (c *StartupController) HandleGetStartups(w http.ResponseWriter, r *http.Req
 	page, pageSize := utils.GetPageAndPageSize(query)
 	sort_by := utils.GetSanitizedQuery(
 		query, "sort_by", "created_at",
-		"name",
-		"username",
-		"email",
+		"title",
+		"slug",
+		"views",
+		"author.name",
 		"created_at",
 		"updated_at",
 	)

@@ -120,7 +120,7 @@ func (s *Store) GetStartups(
 		FROM startup
 		INNER JOIN author ON startup.author_id = author.id
 		WHERE startup.deleted IS NULL %s
-		ORDER BY startup.%s %s
+		ORDER BY %s %s
 		LIMIT ? OFFSET ?
 	`, searchQuery, sort_by, sort_type)
 
