@@ -11,7 +11,7 @@ import (
 )
 
 const createStartupQuery = `
-INSERT INTO startup (id, title, slug, author_id, description, category, image, pitch,created_at, updated_at)
+INSERT INTO startup (id, title, slug, author_id, description, category, image, pitch, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
