@@ -12,6 +12,7 @@ const ContextData types.ContextKey = "data"
 
 var AuthorFields []string = getJSONFieldNames(&types.Author{})
 var StartupFields []string = getJSONFieldNames(&types.Startup{})
+var PlaylistFields []string = getJSONFieldNames(&types.Playlist{})
 
 var SECRET []byte = func() []byte {
 	secret := configs.Envs.SECRET

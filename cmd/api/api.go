@@ -35,6 +35,7 @@ func (s *APIServer) Run() error {
 	routesHandler.RegisterAuthRoutes(subRouter)
 	routesHandler.RegisterAuthorRoutes(subRouter)
 	routesHandler.RegisterStartupRoutes(subRouter)
+	routesHandler.RegisterPlaylistRoutes(subRouter)
 
 	subRouter.Attach("GET", "/user/greet", greet, middleware.AuthenticateToken(store))
 	subRouter.Attach("DELETE", "/user/greets", greet)
