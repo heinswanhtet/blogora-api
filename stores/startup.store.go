@@ -107,7 +107,7 @@ func (s *Store) GetStartups(
 		WHERE startup.deleted is NULL
 	`
 
-	searchQuery, getTotalAuthorsQuery := utils.GetSearchQuery(
+	searchQuery, getTotalStartupsQuery := utils.GetSearchQuery(
 		validStartupSearchFields,
 		search,
 		allowedSearchList,
@@ -158,7 +158,7 @@ func (s *Store) GetStartups(
 	}
 
 	var i int
-	if err := s.db.QueryRowContext(ctx, getTotalAuthorsQuery).Scan(&i); err != nil {
+	if err := s.db.QueryRowContext(ctx, getTotalStartupsQuery).Scan(&i); err != nil {
 		return nil, 0, err
 	}
 
