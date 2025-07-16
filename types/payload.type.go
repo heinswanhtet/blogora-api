@@ -28,3 +28,7 @@ type StartupPayload struct {
 	Image       *string `json:"image"`
 	Pitch       *string `json:"pitch"`
 }
+
+type PlaylistPayload struct {
+	Title *string `json:"title" validate:"required"`
+}
