@@ -11,8 +11,8 @@ import (
 )
 
 const createAuthorQuery = `
-INSERT INTO author (id, name, username, email, image, bio, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO author (id, name, username, email, image, bio, created_at, updated_at, created_by, updated_by)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 func (s *Store) CrateAuthor(ctx context.Context, author *types.Author) (*types.Author, error) {
@@ -27,6 +27,8 @@ func (s *Store) CrateAuthor(ctx context.Context, author *types.Author) (*types.A
 		author.Bio,
 		time.Now().UTC(),
 		time.Now().UTC(),
+		id,
+		id,
 	)
 	if err != nil {
 		return nil, err
@@ -36,7 +38,7 @@ func (s *Store) CrateAuthor(ctx context.Context, author *types.Author) (*types.A
 }
 
 const getAuthorQuery = `
-SELECT id, name, username, email, image, bio, created_at, updated_at, deleted
+SELECT id, name, username, email, image, bio, created_at, updated_at, created_by, updated_by, deleted
 FROM author
 WHERE id = ? AND deleted is NULL
 `
@@ -52,6 +54,8 @@ func (s *Store) GetAuthor(ctx context.Context, id string) (*types.Author, error)
 		&i.Bio,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
 		&i.Deleted,
 	)
 	return &i, err
@@ -139,6 +143,8 @@ func (s *Store) GetAuthors(
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Deleted,
+			&i.CreatedBy,
+			&i.UpdatedBy,
 		)
 		if err != nil {
 			return nil, 0, err
@@ -209,6 +215,7 @@ func (s *Store) UpdateAuthor(ctx context.Context, id string, updateData *types.A
 	// 	},
 	// )
 
+	// need to handle for updated_by
 	query, args, update_ind := utils.GetSetQuery(
 		id,
 		"author",
@@ -243,6 +250,7 @@ func (s *Store) DeleteAuthor(ctx context.Context, id string) error {
 		return nil // no need to return user not found
 	}
 
+	// need to handle for updated_by
 	if author.Deleted == nil {
 		_, err = s.db.ExecContext(ctx, deleteAuthorQuery, id, time.Now().UTC(), id)
 	}
