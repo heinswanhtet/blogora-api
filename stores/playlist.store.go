@@ -11,8 +11,8 @@ import (
 )
 
 const createPlaylistQuery = `
-INSERT INTO playlist (id, title, slug, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?)
+INSERT INTO playlist (id, title, slug, created_at, updated_at, created_by, updated_by)
+VALUES (?, ?, ?, ?, ?, ?, ?)
 `
 
 func (s *Store) CratePlaylist(ctx context.Context, playlist *types.Playlist) (*types.Playlist, error) {
@@ -24,6 +24,8 @@ func (s *Store) CratePlaylist(ctx context.Context, playlist *types.Playlist) (*t
 		playlist.Slug,
 		time.Now().UTC(),
 		time.Now().UTC(),
+		id,
+		id,
 	)
 	if err != nil {
 		return nil, err
@@ -47,6 +49,8 @@ func (s *Store) GetPlaylist(ctx context.Context, id string) (*types.Playlist, er
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Deleted,
+		&i.CreatedBy,
+		&i.UpdatedBy,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("playlist not found")
@@ -69,6 +73,8 @@ func (s *Store) GetPlaylistBySlug(ctx context.Context, slug string) (*types.Play
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Deleted,
+		&i.CreatedBy,
+		&i.UpdatedBy,
 	)
 	return &i, err
 }
@@ -118,6 +124,8 @@ func (s *Store) GetPlaylists(
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Deleted,
+			&i.CreatedBy,
+			&i.UpdatedBy,
 		)
 		if err != nil {
 			return nil, 0, err
@@ -139,6 +147,7 @@ func (s *Store) UpdatePlaylist(ctx context.Context, id string, updateData *types
 		return nil, err
 	}
 
+	// need to handle for updated_by
 	query, args, update_ind := utils.GetSetQuery(
 		id,
 		"playlist",
@@ -170,6 +179,7 @@ func (s *Store) DeletePlaylist(ctx context.Context, id string) error {
 		return nil
 	}
 
+	// need to handle for updated_by
 	if playlist.Deleted == nil {
 		_, err = s.db.ExecContext(ctx, deletePlaylistQuery, id, time.Now().UTC(), id)
 	}

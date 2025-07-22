@@ -23,6 +23,8 @@ type Author struct {
 	Bio       *string    `json:"bio,omitempty"`
 	CreatedAt *time.Time `json:"created_at,omitzero"`
 	UpdatedAt *time.Time `json:"updated_at,omitzero"`
+	CreatedBy *string    `json:"created_by,omitempty"`
+	UpdatedBy *string    `json:"updated_by,omitempty"`
 	Deleted   *string    `json:"deleted,omitempty"`
 }
 
@@ -39,6 +41,8 @@ type Startup struct {
 	Pitch       *string    `json:"pitch"`
 	CreatedAt   *time.Time `json:"created_at"`
 	UpdatedAt   *time.Time `json:"updated_at"`
+	CreatedBy   *string    `json:"created_by"`
+	UpdatedBy   *string    `json:"updated_by"`
 	Deleted     *string    `json:"deleted"`
 }
 
@@ -48,6 +52,8 @@ type Playlist struct {
 	Slug      *string    `json:"slug"`
 	CreatedAt *time.Time `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`
+	CreatedBy *string    `json:"created_by"`
+	UpdatedBy *string    `json:"updated_by"`
 	Deleted   *string    `json:"deleted"`
 }
 
@@ -56,5 +62,7 @@ type StartupPlaylist struct {
 	PlaylistId *string    `json:"playlist_id"`
 	CreatedAt  *time.Time `json:"created_at"`
 	UpdatedAt  *time.Time `json:"updated_at"`
+	CreatedBy  *string    `json:"created_by"`
+	UpdatedBy  *string    `json:"updated_by"`
 	Deleted    *string    `json:"deleted"`
 }

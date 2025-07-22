@@ -11,8 +11,8 @@ import (
 )
 
 const createStartupQuery = `
-INSERT INTO startup (id, title, slug, author_id, description, category, image, pitch, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO startup (id, title, slug, author_id, description, category, image, pitch, created_at, updated_at, created_by, updated_by)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 func (s *Store) CrateStartup(ctx context.Context, startup *types.Startup) (*types.Startup, error) {
@@ -29,6 +29,8 @@ func (s *Store) CrateStartup(ctx context.Context, startup *types.Startup) (*type
 		startup.Pitch,
 		time.Now().UTC(),
 		time.Now().UTC(),
+		startup.AuthorId,
+		startup.AuthorId,
 	)
 	if err != nil {
 		return nil, err
@@ -58,6 +60,8 @@ func (s *Store) GetStartup(ctx context.Context, id string) (*types.Startup, erro
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Deleted,
+		&i.CreatedBy,
+		&i.UpdatedBy,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("startup not found")
@@ -86,6 +90,8 @@ func (s *Store) GetStartupBySlug(ctx context.Context, slug string) (*types.Start
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Deleted,
+		&i.CreatedBy,
+		&i.UpdatedBy,
 	)
 	return &i, err
 }
@@ -116,7 +122,7 @@ func (s *Store) GetStartups(
 	)
 
 	getStartupsQuery := fmt.Sprintf(`
-		SELECT startup.id, title, slug, author_id, views, description, category, startup.image, pitch, startup.created_at, startup.updated_at, startup.deleted, author.id, author.name, author.username, author.email, author.image
+		SELECT startup.id, title, slug, author_id, views, description, category, startup.image, pitch, startup.created_at, startup.updated_at, startup.created_by, startup.updated_by, startup.deleted, author.id, author.name, author.username, author.email, author.image
 		FROM startup
 		INNER JOIN author ON startup.author_id = author.id
 		WHERE startup.deleted IS NULL %s
@@ -144,6 +150,8 @@ func (s *Store) GetStartups(
 			&i.Pitch,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.UpdatedBy,
 			&i.Deleted,
 			&i.Author.ID,
 			&i.Author.Name,
@@ -171,6 +179,7 @@ func (s *Store) UpdateStartup(ctx context.Context, id string, updateData *types.
 		return nil, err
 	}
 
+	// need to handle for updated_by
 	query, args, update_ind := utils.GetSetQuery(
 		id,
 		"startup",
@@ -206,6 +215,7 @@ func (s *Store) DeleteStartup(ctx context.Context, id string) error {
 		return nil
 	}
 
+	// need to handle for updated_by
 	if startup.Deleted == nil {
 		_, err = s.db.ExecContext(ctx, deleteStartupQuery, id, time.Now().UTC(), id)
 	}
