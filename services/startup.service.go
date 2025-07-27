@@ -33,6 +33,11 @@ func (s *StartupService) CreateStartup(ctx context.Context, data *types.StartupP
 		return err == nil
 	})
 
+	jwtPayload, err := utils.GetJWTPayload(ctx)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
 	result, err := s.store.CrateStartup(ctx, &types.Startup{
 		Title:       data.Title,
 		Slug:        &slug,
@@ -41,6 +46,8 @@ func (s *StartupService) CreateStartup(ctx context.Context, data *types.StartupP
 		Category:    data.Category,
 		Image:       data.Image,
 		Pitch:       data.Pitch,
+		CreatedBy:   &jwtPayload.UserId,
+		UpdatedBy:   &jwtPayload.UserId,
 	})
 
 	if err != nil {
@@ -96,6 +103,13 @@ func (s *StartupService) UpdateStartup(
 	id string,
 	updateData *types.StartupPayload,
 ) (*types.Startup, int, error) {
+	permission_ind, err := s.checkPermission(ctx, id)
+	if err != nil {
+		return nil, http.StatusBadRequest, err
+	}
+	if !permission_ind {
+		return nil, http.StatusForbidden, fmt.Errorf("permission denied")
+	}
 
 	startup, err := s.store.UpdateStartup(ctx, id, updateData)
 	if err != nil {
@@ -106,10 +120,36 @@ func (s *StartupService) UpdateStartup(
 }
 
 func (s *StartupService) DeleteStartup(ctx context.Context, id string) (int, error) {
-	err := s.store.DeleteStartup(ctx, id)
+	permission_ind, err := s.checkPermission(ctx, id)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	if !permission_ind {
+		return http.StatusForbidden, fmt.Errorf("permission denied")
+	}
+
+	err = s.store.DeleteStartup(ctx, id)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
 
 	return http.StatusOK, nil
+}
+
+func (s *StartupService) checkPermission(ctx context.Context, id string) (bool, error) {
+	jwtPayload, err := utils.GetJWTPayload(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	startup, err := s.store.GetStartup(ctx, id)
+	if err != nil {
+		return false, err
+	}
+
+	if *startup.AuthorId != jwtPayload.UserId {
+		return false, nil
+	}
+
+	return true, nil
 }

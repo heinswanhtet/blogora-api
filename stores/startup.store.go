@@ -29,8 +29,8 @@ func (s *Store) CrateStartup(ctx context.Context, startup *types.Startup) (*type
 		startup.Pitch,
 		time.Now().UTC(),
 		time.Now().UTC(),
-		startup.AuthorId,
-		startup.AuthorId,
+		startup.CreatedBy,
+		startup.UpdatedBy,
 	)
 	if err != nil {
 		return nil, err
@@ -179,7 +179,11 @@ func (s *Store) UpdateStartup(ctx context.Context, id string, updateData *types.
 		return nil, err
 	}
 
-	// need to handle for updated_by
+	jwtPayload, err := utils.GetJWTPayload(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	query, args, update_ind := utils.GetSetQuery(
 		id,
 		"startup",
@@ -189,6 +193,7 @@ func (s *Store) UpdateStartup(ctx context.Context, id string, updateData *types.
 			utils.NewSetQuery(updateData.Category, "category"),
 			utils.NewSetQuery(updateData.Image, "image"),
 			utils.NewSetQuery(updateData.Pitch, "pitch"),
+			utils.NewSetQuery(&jwtPayload.UserId, "updated_by"),
 		},
 	)
 
@@ -201,24 +206,55 @@ func (s *Store) UpdateStartup(ctx context.Context, id string, updateData *types.
 		return nil, err
 	}
 
-	return s.GetStartup(ctx, id)
+	newData, err := s.GetStartup(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if *newData.Title != *oldData.Title {
+		slug := utils.GenerateUniqueSlug(*newData.Title, func(slug string) bool {
+			_, err := s.GetStartupBySlug(ctx, slug)
+			return err == nil
+		})
+
+		query, args, _ := utils.GetSetQuery(
+			id,
+			"startup",
+			&[]*utils.SetQuery{
+				utils.NewSetQuery(&slug, "slug"),
+			},
+		)
+
+		_, err := s.db.ExecContext(ctx, query, args...)
+		if err != nil {
+			return nil, err
+		}
+
+		return s.GetStartup(ctx, id)
+	}
+
+	return newData, nil
 }
 
 const deleteStartupQuery = `
-UPDATE startup SET deleted = ?, updated_at = ?
+UPDATE startup SET deleted = ?, updated_at = ?, updated_by = ?
 WHERE id = ?
 `
 
 func (s *Store) DeleteStartup(ctx context.Context, id string) error {
 	startup, err := s.GetStartup(ctx, id)
 	if err != nil {
-		return nil
+		return err
 	}
 
-	// need to handle for updated_by
 	if startup.Deleted == nil {
-		_, err = s.db.ExecContext(ctx, deleteStartupQuery, id, time.Now().UTC(), id)
+		jwtPayload, err := utils.GetJWTPayload(ctx)
+		if err != nil {
+			return err
+		}
+		_, err = s.db.ExecContext(ctx, deleteStartupQuery, id, time.Now().UTC(), jwtPayload.UserId, id)
+		return err
 	}
 
-	return err
+	return nil
 }
