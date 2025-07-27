@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/heinswanhtet/blogora-api/interfaces"
@@ -25,9 +26,16 @@ func (s *PlaylistService) CreatePlaylist(ctx context.Context, data *types.Playli
 		return err == nil
 	})
 
+	jwtPayload, err := utils.GetJWTPayload(ctx)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
 	result, err := s.store.CratePlaylist(ctx, &types.Playlist{
-		Title: data.Title,
-		Slug:  &slug,
+		Title:     data.Title,
+		Slug:      &slug,
+		CreatedBy: &jwtPayload.UserId,
+		UpdatedBy: &jwtPayload.UserId,
 	})
 
 	if err != nil {
@@ -77,6 +85,13 @@ func (s *PlaylistService) UpdatePlaylist(
 	id string,
 	updateData *types.PlaylistPayload,
 ) (*types.Playlist, int, error) {
+	permission_ind, err := s.checkPermission(ctx, id)
+	if err != nil {
+		return nil, http.StatusBadRequest, err
+	}
+	if !permission_ind {
+		return nil, http.StatusForbidden, fmt.Errorf("permission denied")
+	}
 
 	playlist, err := s.store.UpdatePlaylist(ctx, id, updateData)
 	if err != nil {
@@ -87,10 +102,36 @@ func (s *PlaylistService) UpdatePlaylist(
 }
 
 func (s *PlaylistService) DeletePlaylist(ctx context.Context, id string) (int, error) {
-	err := s.store.DeletePlaylist(ctx, id)
+	permission_ind, err := s.checkPermission(ctx, id)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	if !permission_ind {
+		return http.StatusForbidden, fmt.Errorf("permission denied")
+	}
+
+	err = s.store.DeletePlaylist(ctx, id)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
 
 	return http.StatusOK, nil
+}
+
+func (s *PlaylistService) checkPermission(ctx context.Context, id string) (bool, error) {
+	jwtPayload, err := utils.GetJWTPayload(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	startup, err := s.store.GetPlaylist(ctx, id)
+	if err != nil {
+		return false, err
+	}
+
+	if *startup.CreatedBy != jwtPayload.UserId {
+		return false, nil
+	}
+
+	return true, nil
 }

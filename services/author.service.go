@@ -52,12 +52,6 @@ func (s *AuthorService) GetAuthors(
 	sort_by, sort_type, search string,
 	otherQuery *map[string]string,
 ) (*[]*types.Author, int, int, error) {
-	// jwt payload testing
-	payload, err := utils.GetJWTPayload(ctx)
-	if err != nil {
-		return nil, 0, http.StatusInternalServerError, err
-	}
-	fmt.Println(payload.UserId)
 
 	allowedSearchList := []string{"name", "username", "email"}
 

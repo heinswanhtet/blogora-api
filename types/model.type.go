@@ -33,7 +33,7 @@ type Startup struct {
 	Title       *string    `json:"title"`
 	Slug        *string    `json:"slug"`
 	AuthorId    *string    `json:"author_id"`
-	Author      Author     `json:"author"`
+	Author      Author     `json:"author,omitzero"`
 	Views       *int       `json:"views"`
 	Description *string    `json:"description"`
 	Category    *string    `json:"category"`

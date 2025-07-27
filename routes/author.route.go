@@ -10,8 +10,8 @@ func (h *Handler) RegisterAuthorRoutes(router *methods.CustomMux) {
 	controller := controllers.NewAuthorController(h.store)
 
 	router.Attach("POST", "/author", controller.HandleCreateAuthor)
-	router.Attach("GET", "/author", controller.HandleGetAuthors, middleware.AuthenticateToken(h.store))
+	router.Attach("GET", "/author", controller.HandleGetAuthors)
 	router.Attach("GET", "/author/{id}", controller.HandleGetSingleAuthor)
-	router.Attach("PUT", "/author/{id}", controller.HandleUpdateAuthor)
-	router.Attach("DELETE", "/author/{id}", controller.HandleDeleteAuthor)
+	router.Attach("PUT", "/author", controller.HandleUpdateAuthor, middleware.AuthenticateToken(h.store))
+	router.Attach("DELETE", "/author", controller.HandleDeleteAuthor, middleware.AuthenticateToken(h.store))
 }

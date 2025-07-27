@@ -401,10 +401,11 @@ func GetSearchQuery(
 // }
 
 func RetrieveBearerToken(r *http.Request) (string, error) {
-	token := strings.Split(r.Header.Get("Authorization"), " ")
-	if len(token) == 0 {
+	authorization := r.Header.Get("Authorization")
+	if authorization == "" {
 		return "", fmt.Errorf("authorization missing")
 	}
+	token := strings.Split(authorization, " ")
 	if len(token) == 1 {
 		return "", fmt.Errorf("invalid token")
 	}

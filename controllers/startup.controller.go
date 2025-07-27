@@ -27,6 +27,13 @@ func (c *StartupController) HandleCreateStartup(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	jwtPayload, err := utils.GetJWTPayload(r.Context())
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	startup.AuthorId = &jwtPayload.UserId
+
 	if err := utils.Validate.Struct(startup); err != nil {
 		errors := utils.GetValidationErrors(err)
 		utils.WriteError(w, http.StatusBadRequest, errors)

@@ -24,8 +24,8 @@ func (s *Store) CratePlaylist(ctx context.Context, playlist *types.Playlist) (*t
 		playlist.Slug,
 		time.Now().UTC(),
 		time.Now().UTC(),
-		id,
-		id,
+		playlist.CreatedBy,
+		playlist.UpdatedBy,
 	)
 	if err != nil {
 		return nil, err
@@ -147,12 +147,17 @@ func (s *Store) UpdatePlaylist(ctx context.Context, id string, updateData *types
 		return nil, err
 	}
 
-	// need to handle for updated_by
+	jwtPayload, err := utils.GetJWTPayload(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	query, args, update_ind := utils.GetSetQuery(
 		id,
 		"playlist",
 		&[]*utils.SetQuery{
 			utils.NewSetQuery(updateData.Title, "title"),
+			utils.NewSetQuery(&jwtPayload.UserId, "updated_by"),
 		},
 	)
 
@@ -165,24 +170,55 @@ func (s *Store) UpdatePlaylist(ctx context.Context, id string, updateData *types
 		return nil, err
 	}
 
-	return s.GetPlaylist(ctx, id)
+	newData, err := s.GetPlaylist(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if *newData.Title != *oldData.Title {
+		slug := utils.GenerateUniqueSlug(*newData.Title, func(slug string) bool {
+			_, err := s.GetPlaylistBySlug(ctx, slug)
+			return err == nil
+		})
+
+		query, args, _ := utils.GetSetQuery(
+			id,
+			"playlist",
+			&[]*utils.SetQuery{
+				utils.NewSetQuery(&slug, "slug"),
+			},
+		)
+
+		_, err := s.db.ExecContext(ctx, query, args...)
+		if err != nil {
+			return nil, err
+		}
+
+		return s.GetPlaylist(ctx, id)
+	}
+
+	return newData, nil
 }
 
 const deletePlaylistQuery = `
-UPDATE playlist SET deleted = ?, updated_at = ?
+UPDATE playlist SET deleted = ?, updated_at = ?, updated_by = ?
 WHERE id = ?
 `
 
 func (s *Store) DeletePlaylist(ctx context.Context, id string) error {
 	playlist, err := s.GetPlaylist(ctx, id)
 	if err != nil {
-		return nil
+		return err
 	}
 
-	// need to handle for updated_by
 	if playlist.Deleted == nil {
-		_, err = s.db.ExecContext(ctx, deletePlaylistQuery, id, time.Now().UTC(), id)
+		jwtPayload, err := utils.GetJWTPayload(ctx)
+		if err != nil {
+			return err
+		}
+		_, err = s.db.ExecContext(ctx, deletePlaylistQuery, id, time.Now().UTC(), jwtPayload.UserId, id)
+		return err
 	}
 
-	return err
+	return nil
 }
