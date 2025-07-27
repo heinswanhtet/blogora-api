@@ -58,7 +58,10 @@ func (s *Store) GetAuthor(ctx context.Context, id string) (*types.Author, error)
 		&i.UpdatedBy,
 		&i.Deleted,
 	)
-	return &i, err
+	if err != nil {
+		return nil, fmt.Errorf("author not found")
+	}
+	return &i, nil
 }
 
 const getAuthorIdByEmailQuery = `

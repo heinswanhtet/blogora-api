@@ -106,7 +106,12 @@ func (c *AuthorController) HandleGetSingleAuthor(w http.ResponseWriter, r *http.
 }
 
 func (c *AuthorController) HandleUpdateAuthor(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
+	jwtPayload, err := utils.GetJWTPayload(r.Context())
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	var updateData types.AuthorPayload // won't update email
 
 	if err := utils.ParseJSON(r, &updateData); err != nil {
@@ -114,7 +119,7 @@ func (c *AuthorController) HandleUpdateAuthor(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	result, status, err := c.authorService.UpdateAuthor(r.Context(), id, &updateData)
+	result, status, err := c.authorService.UpdateAuthor(r.Context(), jwtPayload.UserId, &updateData)
 	if err != nil {
 		utils.WriteError(w, status, err.Error())
 		return
@@ -124,9 +129,13 @@ func (c *AuthorController) HandleUpdateAuthor(w http.ResponseWriter, r *http.Req
 }
 
 func (c *AuthorController) HandleDeleteAuthor(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
+	jwtPayload, err := utils.GetJWTPayload(r.Context())
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
 
-	status, err := c.authorService.DeleteAuthor(r.Context(), id)
+	status, err := c.authorService.DeleteAuthor(r.Context(), jwtPayload.UserId)
 	if err != nil {
 		utils.WriteError(w, status, err.Error())
 		return
