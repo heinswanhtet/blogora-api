@@ -32,3 +32,7 @@ type StartupPayload struct {
 type PlaylistPayload struct {
 	Title *string `json:"title" validate:"required"`
 }
+
+type SsoPayload struct {
+	AccessToken *string `json:"access_token" validate:"required"`
+}
