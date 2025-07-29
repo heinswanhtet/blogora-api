@@ -475,3 +475,9 @@ func secureRandomString(length int) string {
 	// Use base32 to keep it URL-safe and alphanumeric
 	return strings.ToLower(base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(b))[:length]
 }
+
+func FormatUserName(s string) string {
+	s = strings.ToLower(s)
+	s = strings.ReplaceAll(s, " ", "_")
+	return s
+}

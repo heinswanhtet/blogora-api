@@ -66,7 +66,7 @@ func (s *Store) GetAuthor(ctx context.Context, id string) (*types.Author, error)
 
 const getAuthorIdByEmailQuery = `
 SELECT id
-FROM users
+FROM author
 WHERE email = ?
 `
 
