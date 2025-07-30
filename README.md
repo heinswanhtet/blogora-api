@@ -1,6 +1,6 @@
 # 🧱 Pure Go Web Application
 
-This is a lightweight Go web application built **from scratch** without using any web frameworks or ORMs. It is developed entirely using the **Go standard library** and **custom-built functions** for routing, database access, and other logic.
+This is a lightweight Go web server built **from scratch** without using any web frameworks or ORMs. It is developed entirely using the **Go standard library** and **custom-built functions** for routing, database access, and other logic.
 
 ## 🚀 Features
 
