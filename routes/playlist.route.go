@@ -14,4 +14,6 @@ func (h *Handler) RegisterPlaylistRoutes(router *methods.CustomMux) {
 	router.Attach("GET", "/playlist/{id}", controller.HandleGetSinglePlaylist)
 	router.Attach("PUT", "/playlist/{id}", controller.HandleUpdatePlaylist, middleware.AuthenticateToken(h.store))
 	router.Attach("DELETE", "/playlist/{id}", controller.HandleDeletePlaylist, middleware.AuthenticateToken(h.store))
+	router.Attach("POST", "/playlist/{id}/startup", controller.HandleAddOrRemoveStartupsPlaylist, middleware.AuthenticateToken(h.store))
+	router.Attach("GET", "/playlist/{id}/startup", controller.HandleGetStartupsPlaylist, middleware.AuthenticateToken(h.store))
 }

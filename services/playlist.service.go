@@ -135,3 +135,49 @@ func (s *PlaylistService) checkPermission(ctx context.Context, id string) (bool,
 
 	return true, nil
 }
+
+func (s *PlaylistService) AddOrRemoveStartupsPlaylist(ctx context.Context, playlistId string, startupId_list []string, action string) (int, error) {
+	var f func(context.Context, string, []string) error
+
+	switch action {
+	case "add":
+		f = s.store.CreateStartupPlaylist
+	case "remove":
+		f = s.store.RemoveStartupPlaylist
+	}
+
+	err := f(ctx, playlistId, startupId_list)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+
+	return http.StatusCreated, nil
+}
+
+func (s *PlaylistService) GetStartupsPlaylist(
+	ctx context.Context,
+	playlistId string,
+	page, pageSize int,
+	sort_by, sort_type, search string,
+	otherQuery *map[string]string,
+) (*[]*types.Startup, int, int, error) {
+
+	allowedSearchList := []string{"title", "author.name"}
+
+	startups, total, err := s.store.GetStartupsPlaylist(
+		ctx,
+		playlistId,
+		pageSize,
+		utils.GetOffsetToPaginate(page, pageSize),
+		sort_by,
+		sort_type,
+		search,
+		&allowedSearchList,
+		otherQuery,
+	)
+	if err != nil {
+		return nil, 0, http.StatusInternalServerError, err
+	}
+
+	return startups, total, http.StatusOK, nil
+}

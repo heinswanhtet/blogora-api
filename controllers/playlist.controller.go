@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"slices"
 
 	"github.com/heinswanhtet/blogora-api/services"
 	"github.com/heinswanhtet/blogora-api/stores"
@@ -125,4 +126,90 @@ func (c *PlaylistController) HandleDeletePlaylist(w http.ResponseWriter, r *http
 	}
 
 	utils.WriteJSON(w, status, nil, "playlist deleted successfully", nil)
+}
+
+func (c *PlaylistController) HandleAddOrRemoveStartupsPlaylist(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	query := r.URL.Query()
+	action := query.Get("action")
+	if action == "" || !slices.Contains([]string{"add", "remove"}, action) {
+		action = "add"
+	}
+
+	var data struct {
+		StartupList []string `json:"startup_list" validate:"required"`
+	}
+
+	if err := utils.ParseJSON(r, &data); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := utils.Validate.Struct(data); err != nil {
+		errors := utils.GetValidationErrors(err)
+		utils.WriteError(w, http.StatusBadRequest, errors)
+		return
+	}
+
+	status, err := c.playlistService.AddOrRemoveStartupsPlaylist(r.Context(), id, data.StartupList, action)
+	if err != nil {
+		utils.WriteError(w, status, err.Error())
+		return
+	}
+
+	var msg string
+	switch action {
+	case "add":
+		msg = "startups added to playlist successfully"
+	case "remove":
+		msg = "startups removed from playlist successfully"
+	}
+
+	utils.WriteJSON(w, status, nil, msg, nil)
+}
+
+func (c *PlaylistController) HandleGetStartupsPlaylist(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	query := r.URL.Query()
+	page, pageSize := utils.GetPageAndPageSize(query)
+	sort_by := utils.GetSanitizedQuery(
+		query, "sort_by", "created_at",
+		"title",
+		"slug",
+		"views",
+		"author.name",
+		"created_at",
+		"updated_at",
+	)
+	sort_type := utils.GetSanitizedQuery(
+		query, "sort_type", "desc",
+		"asc",
+		"desc",
+	)
+	search := query.Get("search")
+	otherQuery := utils.GetRestOfQuery(query)
+
+	result, total, status, err := c.playlistService.GetStartupsPlaylist(
+		r.Context(),
+		id,
+		page,
+		pageSize,
+		sort_by,
+		sort_type,
+		search,
+		&otherQuery,
+	)
+
+	if err != nil {
+		utils.WriteError(w, status, err.Error())
+		return
+	}
+
+	utils.WriteJSON(
+		w,
+		http.StatusOK,
+		result,
+		"startups by playlist fetched successfully",
+		utils.GenerateMetaPagination(page, pageSize, total),
+	)
 }
