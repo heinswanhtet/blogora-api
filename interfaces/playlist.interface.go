@@ -24,4 +24,16 @@ type PlaylistStore interface {
 	UpdatePlaylist(ctx context.Context, id string, updateData *types.PlaylistPayload) (*types.Playlist, error)
 
 	DeletePlaylist(ctx context.Context, id string) error
+
+	CreateStartupPlaylist(ctx context.Context, playlistId string, startupId_list []string) error
+	RemoveStartupPlaylist(ctx context.Context, playlistId string, startupId_list []string) error
+
+	GetStartupsPlaylist(
+		ctx context.Context,
+		playlistId string,
+		limit, offset int,
+		sort_by, sort_type, search string,
+		allowedSearchList *[]string,
+		otherQuery *map[string]string,
+	) (*[]*types.Startup, int, error)
 }
