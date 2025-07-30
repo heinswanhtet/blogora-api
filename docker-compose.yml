@@ -1,0 +1,34 @@
+services:
+  app:
+    container_name: blogora_go_server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      HOST: app
+      PORT: 8080
+      DB_USER: myuser
+      DB_PASSWORD: mypassword
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: blogora
+      SECRET: jfwio4nigjf9ejfw0efj982j2i4tgbn
+      GO_ENV: local
+    depends_on:
+      - db
+    restart: unless-stopped
+  db:
+    container_name: "blogora_mysql_db"
+    image: mysql:8.0
+    ports:
+      - "3308:3306"
+    volumes:
+      - "./docker/db_data:/var/lib/mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: blogora
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+    restart: unless-stopped
