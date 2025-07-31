@@ -14,4 +14,6 @@ func (h *Handler) RegisterStartupRoutes(router *methods.CustomMux) {
 	router.Attach("GET", "/startup/{id}", controller.HandleGetSingleStartup)
 	router.Attach("PUT", "/startup/{id}", controller.HandleUpdateStartup, middleware.AuthenticateToken(h.store))
 	router.Attach("DELETE", "/startup/{id}", controller.HandleDeleteStartup, middleware.AuthenticateToken(h.store))
+	router.Attach("POST", "/startup/image/upload", controller.HandleUploadImageStartup)
+	router.Attach("GET", "/startup/image", controller.HandleGetImageStartup)
 }

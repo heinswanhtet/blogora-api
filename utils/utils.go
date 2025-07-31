@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -19,9 +20,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/heinswanhtet/blogora-api/configs"
 	"github.com/heinswanhtet/blogora-api/constants"
 	"github.com/heinswanhtet/blogora-api/types"
 	"golang.org/x/crypto/bcrypt"
@@ -480,4 +485,45 @@ func FormatUserName(s string) string {
 	s = strings.ToLower(s)
 	s = strings.ReplaceAll(s, " ", "_")
 	return s
+}
+
+func UploadToS3(file multipart.File, fileName, folderName string) (*manager.UploadOutput, error) {
+	key := fmt.Sprintf("%s/%d-%s", folderName, time.Now().Unix(), fileName)
+
+	uploader := manager.NewUploader(configs.S3Client)
+	result, err := uploader.Upload(context.TODO(), &s3.PutObjectInput{
+		Bucket: aws.String(configs.Envs.AWS_BUCKET_NAME),
+		Key:    aws.String(key),
+		Body:   file,
+	})
+
+	return result, err
+}
+
+func GetFromS3(s3url string) ([]byte, error) {
+	key, err := extractS3Key(s3url)
+	if err != nil {
+		return nil, err
+	}
+
+	downloader := manager.NewDownloader(configs.S3Client)
+	buffer := manager.NewWriteAtBuffer([]byte{})
+	_, err = downloader.Download(context.TODO(), buffer, &s3.GetObjectInput{
+		Bucket: aws.String(configs.Envs.AWS_BUCKET_NAME),
+		Key:    aws.String(key),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return buffer.Bytes(), err
+}
+
+func extractS3Key(s3URL string) (string, error) {
+	parsed, err := url.Parse(s3URL)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimPrefix(parsed.Path, "/"), nil
 }

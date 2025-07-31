@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/heinswanhtet/blogora-api/services"
@@ -134,4 +135,60 @@ func (c *StartupController) HandleDeleteStartup(w http.ResponseWriter, r *http.R
 	}
 
 	utils.WriteJSON(w, status, nil, "startup deleted successfully", nil)
+}
+
+func (c *StartupController) HandleUploadImageStartup(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, "failed to parse multipart form")
+		return
+	}
+
+	file, header, err := r.FormFile("image")
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, "failed to get file")
+		return
+	}
+	defer file.Close()
+
+	result, err := utils.UploadToS3(file, header.Filename, "startup")
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Sprintf("failed to upload to s3: %s", err.Error()))
+		return
+	}
+
+	res := struct {
+		ImageUrl string `json:"image_url"`
+	}{
+		ImageUrl: result.Location,
+	}
+
+	utils.WriteJSON(w, http.StatusOK, res, "startup image uploaded successfully", nil)
+}
+
+func (c *StartupController) HandleGetImageStartup(w http.ResponseWriter, r *http.Request) {
+	var data struct {
+		ImageUrl string `json:"image_url" validate:"required"`
+	}
+
+	if err := utils.ParseJSON(r, &data); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := utils.Validate.Struct(data); err != nil {
+		errors := utils.GetValidationErrors(err)
+		utils.WriteError(w, http.StatusBadRequest, errors)
+		return
+	}
+
+	bytes, err := utils.GetFromS3(data.ImageUrl)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Sprintf("failed to upload to s3: %s", err.Error()))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.WriteHeader(http.StatusOK)
+	w.Write(bytes)
 }
